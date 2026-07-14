@@ -1,0 +1,7 @@
+id: outreach-io
+label: Sent through Outreach
+match:
+  header_present:
+    - x-outreach-id
+    - x-outreach-mailbox-id
+score: 40

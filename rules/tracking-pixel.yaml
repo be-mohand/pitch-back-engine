@@ -1,0 +1,7 @@
+id: tracking-pixel
+label: Open-tracking pixel detected
+match:
+  html_regex:
+    - '<img[^>]+(width="1"[^>]+height="1"|height="1"[^>]+width="1")'
+    - '<img[^>]+src="[^"]*(open|track|pixel)[^"]*"[^>]*(width="1"|style="[^"]*display:\s*none)'
+score: 13

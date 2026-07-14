@@ -1,0 +1,6 @@
+id: lemlist
+label: Sent through Lemlist
+match:
+  header:
+    x-mailer: Lemlist
+score: 40

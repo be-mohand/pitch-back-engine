@@ -1,0 +1,7 @@
+id: hubspot-meetings
+label: HubSpot meeting link in body
+match:
+  body_contains:
+    - meetings.hubspot.com
+    - meetings-eu1.hubspot.com
+score: 15

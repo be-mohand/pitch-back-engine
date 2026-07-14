@@ -1,0 +1,6 @@
+id: first-contact
+label: First contact ever
+match:
+  context:
+    is_first_contact: true
+score: 20

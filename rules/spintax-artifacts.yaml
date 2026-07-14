@@ -1,0 +1,7 @@
+id: spintax-artifacts
+label: Unrendered merge tags in body
+match:
+  body_regex:
+    - '\{\{?\s*(first_?name|company|last_?name)\s*\}?\}'
+    - '\[\[(first_?name|company)\]\]'
+score: 25

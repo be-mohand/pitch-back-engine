@@ -1,0 +1,7 @@
+id: salesloft
+label: Sent through Salesloft
+match:
+  body_contains:
+    - salesloft.com/t/
+    - drift.click
+score: 40

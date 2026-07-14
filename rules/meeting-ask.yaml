@@ -1,0 +1,9 @@
+id: meeting-ask
+label: Asks for a quick call or meeting
+match:
+  body_regex:
+    - '\b(15|20|30)\s?(min|minutes)\b'
+    - 'quick (call|chat|question)'
+    - 'book (a|some) (call|time|meeting)'
+    - 'hop on a call'
+score: 12

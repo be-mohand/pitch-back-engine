@@ -1,0 +1,7 @@
+id: instantly
+label: Sent through Instantly
+match:
+  header_present:
+    - x-instantly-org-id
+    - x-instantly-campaign-id
+score: 40

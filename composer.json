@@ -1,0 +1,34 @@
+{
+    "name": "be-mohand/pitch-back-engine",
+    "description": "Open-source cold email detection engine. Transparent YAML rules, additive scoring, explainable verdicts — no AI, no black box. Powers Pitch Back, the reverse card for cold emails.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": ["cold-email", "email-filtering", "detection-rules", "anti-spam", "yaml"],
+    "authors": [
+        {
+            "name": "Mohand",
+            "homepage": "https://github.com/be-mohand"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "symfony/yaml": "^6.4 || ^7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "PitchBack\\Engine\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PitchBack\\Engine\\Tests\\": "tests/"
+        }
+    },
+    "bin": ["bin/analyze"],
+    "scripts": {
+        "test": "phpunit"
+    }
+}

@@ -1,0 +1,6 @@
+id: sdr-signature
+label: SDR-style signature
+match:
+  body_regex:
+    - '(^|\n)\s*(SDR|BDR|Sales Development Representative|Business Development Representative|Account Executive|Growth (Manager|Lead))\b'
+score: 10

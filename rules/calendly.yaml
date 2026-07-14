@@ -1,0 +1,6 @@
+id: calendly
+label: Calendly link in body
+match:
+  body_contains:
+    - calendly.com
+score: 15

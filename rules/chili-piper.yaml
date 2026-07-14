@@ -1,0 +1,6 @@
+id: chili-piper
+label: Chili Piper booking link in body
+match:
+  body_contains:
+    - chilipiper.com
+score: 15

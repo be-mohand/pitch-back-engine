@@ -1,0 +1,49 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+/**
+ * Analyze a normalized email (JSON) and print the explainable verdict.
+ *
+ *   bin/analyze email.json
+ *
+ * See README.md for the NormalizedEmail JSON shape.
+ */
+
+use PitchBack\Engine\DetectionEngine;
+use PitchBack\Engine\NormalizedEmail;
+use PitchBack\Engine\RuleLoader;
+
+foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php'] as $autoload) {
+    if (file_exists($autoload)) {
+        require $autoload;
+        break;
+    }
+}
+
+$file = $argv[1] ?? null;
+if ($file === null || !is_readable($file)) {
+    fwrite(STDERR, "Usage: bin/analyze <normalized-email.json>\n");
+    exit(1);
+}
+
+$data = json_decode((string)file_get_contents($file), true);
+if (!is_array($data)) {
+    fwrite(STDERR, "Invalid JSON in {$file}\n");
+    exit(1);
+}
+
+$engine = new DetectionEngine(RuleLoader::fromDirectory(dirname(__DIR__) . '/rules'));
+$verdict = $engine->analyze(NormalizedEmail::fromArray($data));
+
+printf("\n  Score          %d%%\n", $verdict->score);
+printf("  Classification %s\n\n", strtoupper($verdict->classification));
+if ($verdict->reasons === []) {
+    echo "  No rules fired.\n\n";
+    exit(0);
+}
+echo "  Reasons\n";
+foreach ($verdict->reasons as $reason) {
+    printf("    ✓ %-40s %-20s +%d\n", $reason['label'], '(' . $reason['ruleId'] . ')', $reason['weight']);
+}
+echo "\n";

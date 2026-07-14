@@ -1,0 +1,7 @@
+id: apollo
+label: Sent through Apollo
+match:
+  body_contains:
+    - app.apollo.io
+    - apollo.io/click
+score: 40

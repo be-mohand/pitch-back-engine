@@ -1,0 +1,6 @@
+id: mailshake
+label: Sent through Mailshake
+match:
+  header:
+    x-mailer: Mailshake
+score: 40

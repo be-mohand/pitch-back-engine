@@ -1,0 +1,6 @@
+id: unsubscribe-header
+label: Bulk-mail unsubscribe header
+match:
+  header_present:
+    - list-unsubscribe
+score: 10

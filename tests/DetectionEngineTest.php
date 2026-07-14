@@ -1,0 +1,191 @@
+<?php
+declare(strict_types=1);
+
+namespace PitchBack\Engine\Tests;
+
+use PitchBack\Engine\DetectionEngine;
+use PitchBack\Engine\NormalizedEmail;
+use PitchBack\Engine\RuleLoader;
+use PitchBack\Engine\Verdict;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+
+class DetectionEngineTest extends TestCase
+{
+    private DetectionEngine $engine;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->engine = new DetectionEngine(RuleLoader::fromDirectory(dirname(__DIR__) . '/rules'));
+    }
+
+    /**
+     * @param array<string, mixed> $overrides
+     */
+    private static function email(array $overrides = []): NormalizedEmail
+    {
+        return NormalizedEmail::fromArray(array_replace_recursive([
+            'messageId' => 'msg-1',
+            'from' => ['name' => 'Jake Miller', 'email' => 'jake@growthmotion.io'],
+            'to' => ['mohand@kreezalid.com'],
+            'subject' => 'Quick question',
+            'bodyText' => 'Hello,',
+            'bodyHtml' => null,
+            'headers' => [],
+            'receivedAt' => '2026-07-14 09:12:00',
+            'context' => ['isFirstContact' => false, 'userHasRepliedBefore' => false],
+        ], $overrides));
+    }
+
+    public function testClassicColdEmailIsProspecting(): void
+    {
+        $verdict = $this->engine->analyze(self::email([
+            'subject' => 'Quick question about your outbound',
+            'bodyText' => "Hi there, are you the right person? I'd love to grab 15 minutes this week.\n"
+                . "calendly.com/jake-growthmotion\n\nJake Miller\nSDR @ GrowthMotion",
+            'bodyHtml' => '<img src="https://trk.growthmotion.io/open/abc" width="1" height="1">',
+            'headers' => ['X-Mailer' => 'Lemlist 5.2'],
+            'context' => ['isFirstContact' => true],
+        ]));
+
+        $this->assertSame(Verdict::PROSPECTING, $verdict->classification);
+        $this->assertGreaterThanOrEqual(90, $verdict->score);
+        $ruleIds = array_column($verdict->reasons, 'ruleId');
+        foreach (['lemlist', 'calendly', 'first-contact', 'sdr-signature', 'tracking-pixel', 'meeting-ask'] as $expected) {
+            $this->assertContains($expected, $ruleIds, "Expected rule '{$expected}' to fire");
+        }
+        // Les raisons sont triées par poids décroissant pour l'affichage.
+        $weights = array_column($verdict->reasons, 'weight');
+        $sorted = $weights;
+        rsort($sorted);
+        $this->assertSame($sorted, $weights);
+    }
+
+    public function testKnownContactPlainEmailIsLegit(): void
+    {
+        $verdict = $this->engine->analyze(self::email([
+            'subject' => 'Re: lunch tomorrow?',
+            'bodyText' => 'Sure, see you at noon.',
+        ]));
+
+        $this->assertSame(Verdict::LEGIT, $verdict->classification);
+        $this->assertSame(0, $verdict->score);
+        $this->assertSame([], $verdict->reasons);
+    }
+
+    public function testNewsletterStaysBelowUnsureThreshold(): void
+    {
+        // Newsletter : unsubscribe (10) + pixel (13) + premier contact (20) = 43 → legit.
+        $verdict = $this->engine->analyze(self::email([
+            'subject' => 'Our July product update',
+            'bodyText' => 'New features this month...',
+            'bodyHtml' => '<img src="https://news.example.com/pixel/open?u=1" width="1" height="1">',
+            'headers' => ['List-Unsubscribe' => '<https://news.example.com/unsub>'],
+            'context' => ['isFirstContact' => true],
+        ]));
+
+        $this->assertSame(Verdict::LEGIT, $verdict->classification);
+        $this->assertSame(43, $verdict->score);
+    }
+
+    public function testMidScoreEmailIsUnsure(): void
+    {
+        // unsubscribe (10) + pixel (13) + premier contact (20) + meeting-ask (12) + calendly (15) = 70.
+        $verdict = $this->engine->analyze(self::email([
+            'bodyText' => "Would you have 15 minutes this week? calendly.com/someone",
+            'bodyHtml' => '<img src="x" width="1" height="1">',
+            'headers' => ['List-Unsubscribe' => '<mailto:unsub@x.com>'],
+            'context' => ['isFirstContact' => true],
+        ]));
+
+        $this->assertSame(Verdict::UNSURE, $verdict->classification);
+        $this->assertSame(70, $verdict->score);
+    }
+
+    public function testScoreIsClampedAt100(): void
+    {
+        $verdict = $this->engine->analyze(self::email([
+            'subject' => 'Quick question — 15 minutes?',
+            'bodyText' => "Hi {{first_name}}, quick question. calendly.com/x meetings.hubspot.com/y chilipiper.com/z "
+                . "app.apollo.io salesloft.com/t/abc\nJake\nSDR",
+            'bodyHtml' => '<img width="1" height="1" src="t">',
+            'headers' => [
+                'X-Mailer' => 'Lemlist Mailshake',
+                'List-Unsubscribe' => '<x>',
+                'X-Instantly-Org-Id' => '1',
+                'X-Outreach-Id' => '2',
+            ],
+            'context' => ['isFirstContact' => true, 'senderDomainAgeDays' => 30],
+        ]));
+
+        $this->assertSame(100, $verdict->score);
+        $this->assertSame(Verdict::PROSPECTING, $verdict->classification);
+    }
+
+    public function testDisabledRuleDoesNotFire(): void
+    {
+        $engine = new DetectionEngine(
+            RuleLoader::fromDirectory(dirname(__DIR__) . '/rules'),
+            disabledRuleIds: ['lemlist'],
+        );
+        $verdict = $engine->analyze(self::email([
+            'headers' => ['X-Mailer' => 'Lemlist'],
+        ]));
+
+        $this->assertNotContains('lemlist', array_column($verdict->reasons, 'ruleId'));
+    }
+
+    /**
+     * Chaque règle du dossier rules/ doit être déclenchable par au moins une fixture.
+     *
+     * @return array<string, array{0: string, 1: array<string, mixed>}>
+     */
+    public static function ruleTriggerProvider(): array
+    {
+        return [
+            'lemlist' => ['lemlist', ['headers' => ['X-Mailer' => 'Lemlist']]],
+            'instantly' => ['instantly', ['headers' => ['X-Instantly-Org-Id' => 'org_1']]],
+            'apollo' => ['apollo', ['bodyText' => 'see app.apollo.io/link']],
+            'outreach-io' => ['outreach-io', ['headers' => ['X-Outreach-Id' => '42']]],
+            'salesloft' => ['salesloft', ['bodyText' => 'https://x.salesloft.com/t/abc']],
+            'mailshake' => ['mailshake', ['headers' => ['X-Mailer' => 'Mailshake v2']]],
+            'calendly' => ['calendly', ['bodyText' => 'book me: calendly.com/jake']],
+            'hubspot-meetings' => ['hubspot-meetings', ['bodyText' => 'meetings.hubspot.com/jake']],
+            'chili-piper' => ['chili-piper', ['bodyText' => 'https://go.chilipiper.com/book']],
+            'tracking-pixel' => ['tracking-pixel', ['bodyHtml' => '<img src="t" width="1" height="1">']],
+            'unsubscribe-header' => ['unsubscribe-header', ['headers' => ['List-Unsubscribe' => '<x>']]],
+            'first-contact' => ['first-contact', ['context' => ['isFirstContact' => true]]],
+            'sdr-signature' => ['sdr-signature', ['bodyText' => "Best,\nJake\nSDR at GrowthMotion"]],
+            'spintax-artifacts' => ['spintax-artifacts', ['bodyText' => 'Hi {{first_name}}, nice site!']],
+            'meeting-ask' => ['meeting-ask', ['bodyText' => 'do you have 15 minutes this week?']],
+            'recent-domain' => ['recent-domain', ['context' => ['senderDomainAgeDays' => 12]]],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $emailOverrides
+     */
+    #[DataProvider('ruleTriggerProvider')]
+    public function testEveryRuleHasATriggeringFixture(string $ruleId, array $emailOverrides): void
+    {
+        $verdict = $this->engine->analyze(self::email($emailOverrides));
+        $this->assertContains(
+            $ruleId,
+            array_column($verdict->reasons, 'ruleId'),
+            "Rule '{$ruleId}' did not fire on its fixture"
+        );
+    }
+
+    public function testEveryRuleFileIsCoveredByTriggerProvider(): void
+    {
+        $ruleIds = array_map(
+            fn($rule) => $rule->id,
+            RuleLoader::fromDirectory(dirname(__DIR__) . '/rules')
+        );
+        $covered = array_keys(self::ruleTriggerProvider());
+        sort($ruleIds);
+        sort($covered);
+        $this->assertSame($ruleIds, $covered, 'Every rules/*.yaml needs a trigger fixture in this test');
+    }
+}
