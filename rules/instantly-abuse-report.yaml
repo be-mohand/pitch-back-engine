@@ -1,0 +1,6 @@
+id: instantly-abuse-report
+label: Instantly abuse-report header
+match:
+  header:
+    x-mail-abuse-inquiries: instantly.ai
+score: 40

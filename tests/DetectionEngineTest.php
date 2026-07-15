@@ -146,6 +146,12 @@ class DetectionEngineTest extends TestCase
         return [
             'lemlist' => ['lemlist', ['headers' => ['X-Mailer' => 'Lemlist']]],
             'instantly' => ['instantly', ['headers' => ['X-Instantly-Org-Id' => 'org_1']]],
+            'instantly-abuse-report' => ['instantly-abuse-report', [
+                'headers' => ['X-Mail-Abuse-Inquiries' => 'https://app.instantly.ai/privacy/report-abuse/019f'],
+            ]],
+            'interest-opener' => ['interest-opener', [
+                'bodyText' => "Was wondering if you'd be interested in getting your SaaS on page one",
+            ]],
             'apollo' => ['apollo', ['bodyText' => 'see app.apollo.io/link']],
             'outreach-io' => ['outreach-io', ['headers' => ['X-Outreach-Id' => '42']]],
             'salesloft' => ['salesloft', ['bodyText' => 'https://x.salesloft.com/t/abc']],

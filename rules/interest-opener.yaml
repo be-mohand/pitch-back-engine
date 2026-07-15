@@ -1,0 +1,8 @@
+id: interest-opener
+label: Classic cold-email opener
+match:
+  body_regex:
+    - "wondering if you.{0,2}d be interested"
+    - "would you be interested in"
+    - "interested in (getting|hearing more|learning more)"
+score: 12
