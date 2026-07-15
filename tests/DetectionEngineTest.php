@@ -171,6 +171,12 @@ class DetectionEngineTest extends TestCase
             'burner-domain' => ['burner-domain', [
                 'from' => ['name' => 'Walter', 'email' => 'walter@tryfunnelpulse.co'],
             ]],
+            'known-prospector-domain' => ['known-prospector-domain', [
+                'from' => ['name' => 'Bjion', 'email' => 'bjion.henry@gtmnavreo.com'],
+            ]],
+            'tagged-domain' => ['tagged-domain', [
+                'context' => ['senderDomainTagged' => true],
+            ]],
             'apollo' => ['apollo', ['bodyText' => 'see app.apollo.io/link']],
             'outreach-io' => ['outreach-io', ['headers' => ['X-Outreach-Id' => '42']]],
             'salesloft' => ['salesloft', ['bodyText' => 'https://x.salesloft.com/t/abc']],

@@ -150,6 +150,7 @@ final class Rule
             $ok = match ((string)$key) {
                 'is_first_contact' => $email->isFirstContact === (bool)$expected,
                 'user_has_replied_before' => $email->userHasRepliedBefore === (bool)$expected,
+                'sender_domain_tagged' => $email->senderDomainTagged === (bool)$expected,
                 'sender_domain_max_age_days' => $email->senderDomainAgeDays !== null
                     && $email->senderDomainAgeDays <= (int)$expected,
                 default => throw new \InvalidArgumentException(

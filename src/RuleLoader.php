@@ -44,11 +44,29 @@ final class RuleLoader
             }
         }
 
+        $match = (array)$data['match'];
+
+        // Matcher data-driven : `from_domain_file` pointe vers une liste de domaines
+        // (un par ligne, # pour les commentaires), résolue relativement au fichier
+        // de règle. Expansé en `from_domain` au chargement — le moteur reste pur.
+        if (isset($match['from_domain_file'])) {
+            $listFile = dirname($file) . DIRECTORY_SEPARATOR . (string)$match['from_domain_file'];
+            if (!is_readable($listFile)) {
+                throw new \RuntimeException("Rule file {$file}: domain list not readable: {$listFile}");
+            }
+            $domains = array_values(array_filter(
+                array_map('trim', file($listFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES)),
+                fn(string $line): bool => $line !== '' && !str_starts_with($line, '#')
+            ));
+            unset($match['from_domain_file']);
+            $match['from_domain'] = array_merge((array)($match['from_domain'] ?? []), $domains);
+        }
+
         return new Rule(
             id: (string)$data['id'],
             label: (string)$data['label'],
             score: (int)$data['score'],
-            match: (array)$data['match'],
+            match: $match,
         );
     }
 }

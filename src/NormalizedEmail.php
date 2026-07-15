@@ -27,6 +27,7 @@ final class NormalizedEmail
         public readonly bool $isFirstContact,
         public readonly bool $userHasRepliedBefore,
         public readonly ?int $senderDomainAgeDays = null,
+        public readonly bool $senderDomainTagged = false,
     ) {
     }
 
@@ -58,6 +59,7 @@ final class NormalizedEmail
             userHasRepliedBefore: (bool)($data['context']['userHasRepliedBefore'] ?? false),
             senderDomainAgeDays: isset($data['context']['senderDomainAgeDays'])
                 ? (int)$data['context']['senderDomainAgeDays'] : null,
+            senderDomainTagged: (bool)($data['context']['senderDomainTagged'] ?? false),
         );
     }
 

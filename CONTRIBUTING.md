@@ -55,6 +55,20 @@ composer test
 In the PR description, tell us where you saw the pattern (a redacted screenshot or
 header dump helps review a lot — strip anything personal).
 
+## Adding a domain to the blocklist
+
+[`blocklist/prospector-domains.txt`](blocklist/prospector-domains.txt) lists known
+cold-outreach **infrastructure** domains (one per line, subdomains match). It feeds the
+`known-prospector-domain` rule (+35).
+
+Strict criteria — the blocklist targets infrastructure, never companies:
+
+- ✅ Burner/mirror domains used by sequencers or prospecting agencies
+  (`gtm<name>.com`, `try<name>.co`, domain rotations of the same sender)
+- ✅ Domains whose only observed traffic is automated outreach
+- ❌ A company's primary domain, merely because someone there once prospected you
+- ❌ Anything you can't back with evidence (redacted headers/body in the PR)
+
 ## What we won't merge
 
 - Rules targeting a specific person or legitimate company rather than a tool/pattern

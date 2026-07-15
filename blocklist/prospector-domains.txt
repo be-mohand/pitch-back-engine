@@ -1,0 +1,11 @@
+# Known cold-outreach infrastructure domains.
+# One domain per line. Subdomains match automatically.
+#
+# Contribution criteria (see CONTRIBUTING.md): outreach infrastructure only —
+# burner/mirror domains used by sequencers and prospecting agencies.
+# Never list a company merely because it once prospected you.
+gtmnavreo.com
+tryerab2b.com
+erab2bapp.com
+tryfunnelpulse.co
+mynbunnies.com

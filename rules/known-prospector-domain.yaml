@@ -1,0 +1,5 @@
+id: known-prospector-domain
+label: Known prospecting domain (community blocklist)
+match:
+  from_domain_file: ../blocklist/prospector-domains.txt
+score: 35

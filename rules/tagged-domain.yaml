@@ -1,0 +1,6 @@
+id: tagged-domain
+label: You pitched this domain back before
+match:
+  context:
+    sender_domain_tagged: true
+score: 25
