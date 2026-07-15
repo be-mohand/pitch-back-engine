@@ -1,0 +1,10 @@
+id: reply-stop-cta
+label: Opt-out by replying (cold-email pattern)
+match:
+  body_regex:
+    - "reply (with )?.{0,3}(stop|not interested|unsubscribe)"
+    - "no longer wish to receive"
+    - "répondez (simplement )?.{0,3}(stop|non)"
+    - "ne souhaitez plus recevoir"
+    - "répondez .{0,40} à ce (mail|e-?mail|courriel)"
+score: 15

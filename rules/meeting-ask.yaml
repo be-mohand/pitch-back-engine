@@ -6,4 +6,8 @@ match:
     - 'quick (call|chat|question)'
     - 'book (a|some) (call|time|meeting)'
     - 'hop on a call'
+    - '(mes|vos) disponibilités'
+    - 'court appel'
+    - 'un créneau cette semaine'
+    - 'réserver .{0,25}un créneau'
 score: 12

@@ -1,0 +1,8 @@
+id: cold-admission
+label: Admits this is cold outreach
+match:
+  body_regex:
+    - "reaching out cold"
+    - "(apologies|sorry) for (the )?cold"
+    - "je me permets de vous (écrire|contacter|demander|solliciter)"
+score: 25

@@ -1,0 +1,7 @@
+id: burner-domain
+label: Disposable-style outreach domain
+match:
+  from_email_regex:
+    - "@(try|get|use|hey)[a-z0-9]+\\.(co|com|io|ai)$"
+    - "@gtm[a-z0-9]+\\.(co|com|io|ai)$"
+score: 15

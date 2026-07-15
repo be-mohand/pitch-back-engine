@@ -1,0 +1,11 @@
+id: bulk-esp
+label: Sent through a bulk email service
+match:
+  header_present:
+    - x-sib-id
+    - x-mailin-eid
+    - x-sg-eid
+    - x-mailgun-sid
+    - x-mandrill-user
+    - x-ses-outgoing
+score: 10

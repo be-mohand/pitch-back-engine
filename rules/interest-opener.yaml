@@ -5,4 +5,6 @@ match:
     - "wondering if you.{0,2}d be interested"
     - "would you be interested in"
     - "interested in (getting|hearing more|learning more)"
+    - "pourrait vous intéresser"
+    - "si cela vous intéresse"
 score: 12

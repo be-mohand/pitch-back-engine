@@ -1,0 +1,11 @@
+id: follow-up-bump
+label: Automated follow-up bump
+match:
+  body_regex:
+    - "floating this back"
+    - "bumping this"
+    - "following up on my (last|previous)"
+    - "je reviens vers vous"
+    - "retenu votre intérêt"
+    - "je vous ai envoyé un e-?mail"
+score: 13

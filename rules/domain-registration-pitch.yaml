@@ -1,0 +1,9 @@
+id: domain-registration-pitch
+label: Pitch triggered by a domain registration
+match:
+  body_regex:
+    - "votre nom de domaine"
+    - "vous venez d.{1,2}enregistrer"
+    - "bravo pour l.{1,2}achat"
+    - "(purchased|registered) (the |your )?domain"
+score: 20

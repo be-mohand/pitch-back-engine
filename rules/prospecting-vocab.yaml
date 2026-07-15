@@ -1,0 +1,16 @@
+id: prospecting-vocab
+label: Sells leads, meetings or outreach services
+match:
+  body_regex:
+    - "prospects? qualifiés"
+    - "qualified leads"
+    - "génération de rendez-vous"
+    - "campagnes? de prospection"
+    - "agence de prospection"
+    - "pay.per.lead"
+    - "landed meetings"
+    - "in pipeline"
+    - "booking calls"
+    - "nous sommes le spécialiste"
+    - "high.intent"
+score: 15

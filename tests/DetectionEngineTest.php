@@ -152,6 +152,25 @@ class DetectionEngineTest extends TestCase
             'interest-opener' => ['interest-opener', [
                 'bodyText' => "Was wondering if you'd be interested in getting your SaaS on page one",
             ]],
+            'reply-stop-cta' => ['reply-stop-cta', [
+                'bodyText' => 'If you no longer wish to receive my emails, reply with "not interested".',
+            ]],
+            'cold-admission' => ['cold-admission', [
+                'bodyText' => "Apologies for reaching out cold, I wasn't sure who to contact.",
+            ]],
+            'prospecting-vocab' => ['prospecting-vocab', [
+                'bodyText' => "J'ai réussi à capter des prospects qualifiés lors de mes campagnes.",
+            ]],
+            'domain-registration-pitch' => ['domain-registration-pitch', [
+                'bodyText' => "Bravo pour l'achat de exemple.fr ! Nous transformons un nom de domaine en site.",
+            ]],
+            'bulk-esp' => ['bulk-esp', ['headers' => ['X-Sib-Id' => 'abc123']]],
+            'follow-up-bump' => ['follow-up-bump', [
+                'bodyText' => "Je reviens vers vous sur le programme dont je vous ai évoqué le principe.",
+            ]],
+            'burner-domain' => ['burner-domain', [
+                'from' => ['name' => 'Walter', 'email' => 'walter@tryfunnelpulse.co'],
+            ]],
             'apollo' => ['apollo', ['bodyText' => 'see app.apollo.io/link']],
             'outreach-io' => ['outreach-io', ['headers' => ['X-Outreach-Id' => '42']]],
             'salesloft' => ['salesloft', ['bodyText' => 'https://x.salesloft.com/t/abc']],
@@ -181,6 +200,75 @@ class DetectionEngineTest extends TestCase
             array_column($verdict->reasons, 'ruleId'),
             "Rule '{$ruleId}' did not fire on its fixture"
         );
+    }
+
+    /**
+     * Corpus réel anonymisé : premiers emails de vrais fils de prospection reçus
+     * dans la nature. Chacun doit au minimum être retenu pour revue (score >= 60).
+     *
+     * @return array<string, array{0: array<string, mixed>}>
+     */
+    public static function realWorldCorpusProvider(): array
+    {
+        $first = ['context' => ['isFirstContact' => true, 'userHasRepliedBefore' => false]];
+
+        return [
+            'domain-squat via Brevo (FR)' => [$first + [
+                'from' => ['name' => 'Agence Web', 'email' => 'bonjour@agence-exemple.com'],
+                'subject' => 'Votre nom de domaine "exemple.fr"',
+                'bodyText' => "Bonjour, Vous venez d'enregistrer exemple.fr — avez-vous déjà un projet de site ? "
+                    . "Réservez directement un créneau de 15 min ici : https://calendly.com/agence/15min "
+                    . "Pour ne plus recevoir ces messages, répondez simplement \"stop\" à cet email.",
+                'bodyHtml' => '<img width="1" height="1" src="https://esp.example/tr/op/x">',
+                'headers' => ['X-Sib-Id' => 'x', 'List-Unsubscribe' => '<https://x>'],
+            ]],
+            'reply-CTA specialist brag (FR)' => [$first + [
+                'from' => ['name' => 'Walter', 'email' => 'walter@trygrowthpulse.co'],
+                'bodyText' => "Je suis Walter, nous sommes le spécialiste français de la conformité. "
+                    . "Répondez \"je veux en savoir plus\" à ce mail et je vous envoie notre diagnostic.",
+            ]],
+            'cold admission pay-per-lead (EN)' => [$first + [
+                'from' => ['name' => 'B. H.', 'email' => 'bh@gtmexample.com'],
+                'bodyText' => "Apologies for reaching out cold. We run it for you on a pay-per-lead basis. "
+                    . "Driving \$15M+ in pipeline and booking calls. "
+                    . 'If you no longer wish to receive my emails, reply with "not interested".',
+            ]],
+            'je me permets + leads (FR)' => [$first + [
+                'from' => ['name' => 'M. M.', 'email' => 'mm@solutions-exemple.com'],
+                'bodyText' => "Je me permets de vous écrire car j'ai réussi à capter des prospects qualifiés "
+                    . "lors de mes campagnes précédentes. N'hésitez pas à me dire si cela pourrait vous intéresser.",
+            ]],
+            'domain-squat mockup offer (FR)' => [$first + [
+                'from' => ['name' => 'O. Z.', 'email' => 'oz@webtech-exemple.com'],
+                'bodyText' => "Bravo pour l'achat de exemple.fr ! Pourquoi ne pas en parler lors d'un court appel "
+                    . "(15 minutes) ? Un créneau cette semaine vous conviendrait ? "
+                    . "Si vous ne souhaitez plus recevoir nos messages, répondez STOP.",
+            ]],
+            'agence de prospection (FR)' => [$first + [
+                'from' => ['name' => 'L. D.', 'email' => 'ld@tryagence.com'],
+                'bodyText' => "Cette équipe est pilotée par notre agence de prospection. Je veux juste savoir si "
+                    . "notre méthode de génération de rendez-vous est adaptée. "
+                    . "Je vous envoie mes disponibilités pour qu'on en juge ensemble.",
+            ]],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $emailOverrides
+     */
+    #[DataProvider('realWorldCorpusProvider')]
+    public function testRealWorldCorpusIsCaught(array $emailOverrides): void
+    {
+        $verdict = $this->engine->analyze(self::email(array_replace_recursive([
+            'from' => ['name' => 'X', 'email' => 'x@cold-sender-example.com'],
+        ], $emailOverrides)));
+
+        $this->assertGreaterThanOrEqual(
+            60,
+            $verdict->score,
+            'Real-world cold email should at least be held for review'
+        );
+        $this->assertNotSame(Verdict::LEGIT, $verdict->classification);
     }
 
     public function testEveryRuleFileIsCoveredByTriggerProvider(): void
